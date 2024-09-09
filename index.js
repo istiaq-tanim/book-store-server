@@ -25,6 +25,7 @@ async function run() {
         const db = client.db('book-store');
         const bookCollection = db.collection('books');
         const userCollection = db.collection("users")
+        const paymentCollection = db.collection("payments")
 
 
         app.post('/register', async (req, res) => {
@@ -113,13 +114,57 @@ async function run() {
 
         app.get("/books/:id", async (req, res) => {
             const { id } = req.params
-            console.log(id)
             const query = { _id: new ObjectId(id) };
             const book = await bookCollection.findOne(query)
             return res.status(200).json({
                 success: true,
                 message: "Book Retrieved Successfully",
                 data: book
+            })
+        })
+
+        app.post("/addBook", async (req, res) => {
+            const product = req.body
+            const data = await bookCollection.insertOne(product)
+            res.status(201).json({
+                success: true,
+                message: 'New Book is Added',
+                data
+            });
+        })
+
+        app.delete("/book/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await bookCollection.deleteOne(query)
+            res.status(201).json({
+                success: true,
+                message: 'Book is Deleted',
+            });
+        })
+
+        app.put("/book/:id", async (req, res) => {
+            const id = req.params.id
+            const updatedProduct = req.body
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updateProduct = { $set: updatedProduct }
+
+            const result = await bookCollection.updateOne(filter, updateProduct, options)
+            res.status(201).json({
+                success: true,
+                message: 'Book Data is Updated',
+                result
+            });
+        })
+
+        app.get("/payment", async (req, res) => {
+            const { email } = req.query
+            const orderBookList = await paymentCollection.find({ email: email }).toArray()
+            return res.status(200).json({
+                success: true,
+                message: "Payment Retrieved Successfully",
+                data: orderBookList
             })
         })
 
