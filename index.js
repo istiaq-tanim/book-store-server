@@ -102,7 +102,9 @@ async function run() {
             if (filter.$and.length === 0) {
                 delete filter.$and;
             }
-            const books = await bookCollection.find(filter).toArray()
+            const books = await bookCollection.find(filter).sort({
+                saleNumber: 1
+            }).toArray()
 
             res.status(201).json({
                 success: true,
@@ -110,6 +112,32 @@ async function run() {
                 data: books
             });
 
+        })
+
+        app.get("/featuredBook", async (req, res) => {
+            const { query } = req.query
+            let books
+            if (query === "featured") {
+                books = await bookCollection.find({ featured: true }).toArray()
+            }
+            if (query === "onSale") {
+                books = await bookCollection.find({ onSale: true }).toArray()
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Book Retrieved Successfully",
+                data: books
+            })
+        })
+
+        app.get("/newRelease", async (req, res) => {
+            const { query } = req.query
+            const books = await bookCollection.find({ category: query }).toArray()
+            return res.status(200).json({
+                success: true,
+                message: "Book Retrieved Successfully",
+                data: books
+            })
         })
 
         app.get("/books/:id", async (req, res) => {
