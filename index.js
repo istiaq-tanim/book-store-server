@@ -120,25 +120,39 @@ async function run() {
         })
 
         app.get("/allBooks", async (req, res) => {
+            try {
+                let searchTerm = "";
+                if (req?.query?.searchTerm) {
+                    searchTerm = req?.query?.searchTerm;
+                }
 
-            let searchTerm = ""
-            if (req?.query?.searchTerm) {
-                searchTerm = req?.query?.searchTerm
+                const searchAbleFields = ["title", "author"];
+                const page = Number(req?.query?.page) || 1;
+                const limit = Number(req?.query?.limit) || 5;
+                const skip = (page - 1) * limit;
+
+                const searchedBooks = await bookCollection.find({
+                    $or: searchAbleFields.map((field) => ({
+                        [field]: { $regex: searchTerm, $options: "i" }
+                    }))
+                }).skip(skip).limit(limit).toArray();
+
+                console.log(`page ${page}, limit ${limit}, skip ${skip}`);
+
+                res.status(200).json({
+                    success: true,
+                    message: 'Books fetched successfully',
+                    data: searchedBooks
+                });
+            } catch (error) {
+                res.status(500).json({
+                    success: false,
+                    message: 'An error occurred while fetching books',
+                    error: error.message
+                });
             }
-            const searchAbleFields = ["title", "author"]
+        });
 
-            const searchedMovies = await bookCollection.find({
-                $or: searchAbleFields.map((field) => ({
-                    [field]: { $regex: searchTerm, $options: "i" }
-                }))
-            }).toArray()
-
-            res.status(201).json({
-                success: true,
-                message: 'Books is Fetching',
-                data: searchedMovies
-            });
-        })
 
         app.get("/featuredBook", async (req, res) => {
             const { query } = req.query
