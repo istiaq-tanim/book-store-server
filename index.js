@@ -119,6 +119,27 @@ async function run() {
 
         })
 
+        app.get("/allBooks", async (req, res) => {
+
+            let searchTerm = ""
+            if (req?.query?.searchTerm) {
+                searchTerm = req?.query?.searchTerm
+            }
+            const searchAbleFields = ["title", "author"]
+
+            const searchedMovies = await bookCollection.find({
+                $or: searchAbleFields.map((field) => ({
+                    [field]: { $regex: searchTerm, $options: "i" }
+                }))
+            }).toArray()
+
+            res.status(201).json({
+                success: true,
+                message: 'Books is Fetching',
+                data: searchedMovies
+            });
+        })
+
         app.get("/featuredBook", async (req, res) => {
             const { query } = req.query
             let books
