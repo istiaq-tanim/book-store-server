@@ -137,11 +137,16 @@ async function run() {
                     }))
                 }).skip(skip).limit(limit).toArray();
 
-                console.log(`page ${page}, limit ${limit}, skip ${skip}`);
+                const total = await bookCollection.countDocuments();
+                const totalPage = Math.ceil(total / limit);
+
 
                 res.status(200).json({
                     success: true,
                     message: 'Books fetched successfully',
+                    page,
+                    limit,
+                    totalPage,
                     data: searchedBooks
                 });
             } catch (error) {
